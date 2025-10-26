@@ -17,7 +17,7 @@ A comprehensive guide for setting up a new SaaS project using the Next Launch TS
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/next-launch-ts.git your-project-name
+git clone https://github.com/zphelps/next-launch-ts.git your-project-name
 cd your-project-name
 
 # Remove existing git history and start fresh
