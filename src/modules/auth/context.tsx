@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { createSupabaseClient } from '@/supabase';
 import { AuthFunctions, AuthState } from './types';
 import AuthService from './service';
+import { authConfig } from './config';
 
 interface AuthContextValue extends AuthState, AuthFunctions { }
 
@@ -100,17 +101,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const authFunctions: AuthFunctions = {
         signIn: async (credentials) => {
             const { user, error } = await AuthService.signIn(credentials);
-            router.refresh();
+            if (!error && user) {
+                // Get returnTo from URL if it exists
+                const params = new URLSearchParams(window.location.search);
+                const returnTo = params.get('returnTo');
+                router.push(returnTo || authConfig.defaultRedirectPath);
+            }
             return { user, error: error as AuthError };
         },
         signUp: async (credentials) => {
             const { user, error } = await AuthService.signUp(credentials);
-            router.refresh();
+            if (!error && user) {
+                // After signup, always go to dashboard
+                router.push(authConfig.defaultRedirectPath);
+            }
             return { user, error: error as AuthError };
         },
         signOut: async () => {
             const { error } = await AuthService.signOut();
-            router.refresh();
+            if (!error) {
+                router.push(authConfig.loginPath);
+            }
             return { error: error as AuthError };
         },
         signInWithGoogle: async () => {

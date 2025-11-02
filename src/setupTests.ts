@@ -22,13 +22,13 @@ jest.mock('next/navigation', () => ({
 
 // Mock Supabase
 jest.mock('@/supabase', () => ({
-    createSupabaseClient: jest.fn(() => ({
+    createSupabaseClient: jest.fn(() => Promise.resolve({
         auth: {
-            getUser: jest.fn(),
-            getSession: jest.fn(),
-            signInWithPassword: jest.fn(),
-            signUp: jest.fn(),
-            signOut: jest.fn(),
+            getUser: jest.fn(() => Promise.resolve({ data: { user: null }, error: null })),
+            getSession: jest.fn(() => Promise.resolve({ data: { session: null }, error: null })),
+            signInWithPassword: jest.fn(() => Promise.resolve({ data: { user: null, session: null }, error: null })),
+            signUp: jest.fn(() => Promise.resolve({ data: { user: null, session: null }, error: null })),
+            signOut: jest.fn(() => Promise.resolve({ error: null })),
             onAuthStateChange: jest.fn(() => ({
                 data: { subscription: { unsubscribe: jest.fn() } }
             })),
@@ -40,7 +40,28 @@ jest.mock('@/supabase', () => ({
             delete: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
             order: jest.fn().mockReturnThis(),
-            single: jest.fn(),
+            single: jest.fn(() => Promise.resolve({ data: null, error: null })),
+        })),
+    })),
+    createBrowserSupabaseClient: jest.fn(() => ({
+        auth: {
+            getUser: jest.fn(() => Promise.resolve({ data: { user: null }, error: null })),
+            getSession: jest.fn(() => Promise.resolve({ data: { session: null }, error: null })),
+        },
+        from: jest.fn(() => ({
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockReturnThis(),
+            single: jest.fn(() => Promise.resolve({ data: null, error: null })),
+        })),
+    })),
+    createServerSupabaseClient: jest.fn(() => Promise.resolve({
+        auth: {
+            getUser: jest.fn(() => Promise.resolve({ data: { user: null }, error: null })),
+        },
+        from: jest.fn(() => ({
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockReturnThis(),
+            single: jest.fn(() => Promise.resolve({ data: null, error: null })),
         })),
     })),
 }))
