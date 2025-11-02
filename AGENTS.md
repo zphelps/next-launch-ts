@@ -227,25 +227,37 @@ if (!isAuthenticated) {
 - **Real-time subscriptions** - use Supabase realtime
 - **Basic data fetching** - React Query + Supabase is more efficient
 
+**Important: Keep API Routes Thin**
+- **API routes should be minimal** - handle request/response only
+- **Delegate to service methods** - all business logic belongs in services
+- **Services are reusable** - can be called from hooks, API routes, or server components
+
 **Example: When to Use Each Approach**
 
 ```typescript
-// ✅ Direct Supabase call (preferred for most cases)
+// ✅ Direct Supabase call via service (preferred for most cases)
+// services/todos.ts
+export class TodoService {
+  async getTodos(userId: string): Promise<Todo[]> {
+    const supabase = await createSupabaseClient();
+    const { data, error } = await supabase
+      .from('todos')
+      .select('*')
+      .eq('user_id', userId);
+    
+    if (error) throw new Error(error.message);
+    return data as Todo[];
+  }
+}
+
+// hooks/useTodos.ts
 export function useTodos() {
   const { user } = useAuth();
+  const todoService = new TodoService();
   
   return useQuery({
     queryKey: ['todos', user?.id],
-    queryFn: async () => {
-      const supabase = await createSupabaseClient();
-      const { data, error } = await supabase
-        .from('todos')
-        .select('*')
-        .eq('user_id', user!.id);
-      
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => todoService.getTodos(user!.id),
     enabled: !!user?.id,
   });
 }
@@ -263,8 +275,11 @@ export async function POST(request: Request) {
     process.env.STRIPE_WEBHOOK_SECRET
   );
   
-  // Process payment and update database
-  // This requires server-side access to Stripe secret
+  // Delegate business logic to service
+  const paymentService = new PaymentService();
+  await paymentService.processStripeWebhook(event);
+  
+  return Response.json({ received: true });
 }
 ```
 
@@ -494,28 +509,29 @@ interface CreateTodoButtonProps {
 5. **Type everything** - Leverage TypeScript strict mode and Zod validation
 6. **Environment validation** - Use `src/lib/env.ts` for type-safe variables
 7. **Invalidate queries** - Keep UI in sync after mutations
+8. **Business logic in services** - Keep hooks and API routes thin, delegate to service methods
 
 ### 🎨 UI/UX
-8. **Extract components early** - Keep files <200 lines, extract reusable patterns
-9. **Use shadcn/ui components** - Pre-styled, accessible components
-10. **Show user feedback** - Use toast notifications for actions
-11. **Handle loading states** - Always show loading indicators
+9. **Extract components early** - Keep files <200 lines, extract reusable patterns
+10. **Use shadcn/ui components** - Pre-styled, accessible components
+11. **Show user feedback** - Use toast notifications for actions
+12. **Handle loading states** - Always show loading indicators
 
 ### 🔒 Security & Performance
-12. **Protect routes** - Use middleware for authentication
-13. **Enable RLS** - Row Level Security on all Supabase tables
-14. **Optimize queries** - Use React Query caching and stale time
+13. **Protect routes** - Use middleware for authentication
+14. **Enable RLS** - Row Level Security on all Supabase tables
+15. **Optimize queries** - Use React Query caching and stale time
 
 ### 🛣️ API Design
-15. **Prefer direct Supabase calls** - Use API routes only for server-side operations
-16. **Use API routes for webhooks** - External service integrations and secret key operations
-17. **Keep API routes focused** - Single responsibility, clear error handling
+16. **Prefer direct Supabase calls** - Use API routes only for server-side operations
+17. **Use API routes for webhooks** - External service integrations and secret key operations
+18. **Keep API routes focused** - Single responsibility, clear error handling
 
 ### 🧹 Code Quality
-18. **Less code = less tech debt** - Start simple, add complexity only when needed
-19. **Delete unused code** - Remove dead code immediately
-20. **Avoid premature abstraction** - Extract only when you have 2+ use cases
-21. **Leverage existing solutions** - Use built-in Next.js, React Query, and shadcn/ui features
+19. **Less code = less tech debt** - Start simple, add complexity only when needed
+20. **Delete unused code** - Remove dead code immediately
+21. **Avoid premature abstraction** - Extract only when you have 2+ use cases
+22. **Leverage existing solutions** - Use built-in Next.js, React Query, and shadcn/ui features
 
 ---
 
