@@ -1,28 +1,55 @@
 # AGENTS.md
 
-This document provides AI agents with essential context about this **[APPLICATION_NAME]** and its architectural patterns. This application is built with scalable, enterprise-grade features and follows modern development best practices.
+This document provides AI agents with essential context about **EngScribe** and its architectural patterns. This application is built with scalable, enterprise-grade features and follows modern development best practices.
 
 ## 🎯 Application Context
 
-<!-- 
-📝 UPDATE THIS SECTION: Replace with your specific application context
-Describe your application's domain and business logic:
-- The specific domain/industry of your application
-- Core business logic and workflows
-- Key user types and their roles
-- Domain-specific terminology and concepts
-- Business rules and constraints
-- Integration requirements with external services
+**EngScribe** is an engineering notebook and judging platform for VEX Robotics competitions. The platform streamlines the entire notebook lifecycle—from creation and submission to judging and scoring—replacing traditional paper-based processes with a unified digital solution.
 
-Example:
-This is a project management SaaS for construction teams. Key concepts include:
-- Projects with phases, tasks, and milestones
-- Team roles: Project Manager, Contractor, Client
-- Integration with scheduling and invoicing systems
-- Compliance with industry safety standards
--->
+### Domain & Industry
+- **VEX Robotics**: Competitive robotics program for students (elementary through university)
+- **Engineering Notebooks**: Detailed documentation of the design process, testing, and iterations required for VEX competitions
+- **Competition Judging**: Structured evaluation process where judges review notebooks and assign scores based on rubrics
 
-> **Update this section** with your application's specific domain context, business logic, user types, and key workflows to help AI systems understand your business domain.
+### Core Business Logic & Workflows
+
+**Team Workflow:**
+1. Teams create and write engineering notebooks within the platform
+2. Teams submit notebooks to specific competitions/events
+3. Teams receive feedback and scores from judges
+
+**Event Partner Workflow:**
+1. Event partners create and manage competitions
+2. Assign submitted notebooks to qualified judges
+3. Monitor judging progress and triage scores
+4. Finalize competition results and rankings
+
+**Judge Workflow:**
+1. Judges receive notebook assignments from event partners
+2. Review notebooks using standardized rubrics
+3. Submit scores and feedback for assigned notebooks
+
+### Key User Types & Roles
+- **Teams/Students**: Create, edit, and submit engineering notebooks
+- **Event Partners/Organizers**: Manage competitions, assign judges, oversee scoring
+- **Judges**: Evaluate notebooks and provide scores based on rubrics
+- **Administrators**: Platform-level management and support
+
+### Domain-Specific Terminology
+- **Engineering Notebook**: Chronological documentation of design process, decisions, and testing
+- **Submission**: A notebook entry submitted to a specific competition
+- **Assignment**: Linking a submitted notebook to a judge for evaluation
+- **Rubric**: Standardized scoring criteria for judging notebooks
+- **Triage**: Process of reviewing and validating scores before finalization
+- **Event/Competition**: VEX Robotics tournament or competition requiring notebook submissions
+
+### Business Rules & Constraints
+- Notebooks can only be submitted during open submission periods
+- Each notebook must be assigned to at least one judge
+- Judges cannot evaluate notebooks from their own organization
+- Scores must be validated/triaged before public release
+- Notebooks maintain version history for audit purposes
+- Submission deadlines are enforced at the competition level
 
 ---
 
