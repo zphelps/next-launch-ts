@@ -2,6 +2,8 @@
 
 A modern, production-ready SaaS starter built with Next.js 15, React Query, Supabase, and shadcn/ui. This comprehensive starter includes everything you need to launch a scalable SaaS application with enterprise-grade features.
 
+> 🚨 **Using this template?** Make sure to follow the [setup instructions](#-getting-started) carefully, especially the step to **remove the `.git` directory** after cloning. This prevents accidentally pushing your project's changes back to this template repository.
+
 ## 🚀 Features
 
 ### Core Application
@@ -50,13 +52,26 @@ A modern, production-ready SaaS starter built with Next.js 15, React Query, Supa
 - npm or yarn
 - Supabase account
 
-### 1. Clone and Install
+### 1. Clone and Setup Your Project
 
 ```bash
-git clone <your-repo-url>
-cd next-launch-ts
+# Clone the template
+git clone https://github.com/zphelps/next-launch-ts.git your-project-name
+cd your-project-name
+
+# Install dependencies
 npm install
+
+# Disconnect from the template repository
+git remote remove origin
+
+# Create your own repository on GitHub, then add it as origin:
+git remote add origin https://github.com/yourusername/your-project-name.git
+git branch -M main
+git push -u origin main
 ```
+
+> ⚠️ **Important**: Always run `git remote remove origin` after cloning to disconnect from the template repository. This prevents accidentally pushing your project changes back to the template.
 
 ### 2. Set up Supabase
 

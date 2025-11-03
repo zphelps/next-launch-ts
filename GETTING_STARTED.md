@@ -20,14 +20,16 @@ A comprehensive guide for setting up a new SaaS project using the Next Launch TS
 git clone https://github.com/zphelps/next-launch-ts.git your-project-name
 cd your-project-name
 
-# Remove existing git history and start fresh
-rm -rf .git
-git init
-git add .
-git commit -m "Initial commit from Next Launch TS starter"
-
 # Install dependencies
 npm install
+
+# Disconnect from the template repository
+git remote remove origin
+
+# Create your own repository on GitHub, then add it as origin:
+git remote add origin https://github.com/yourusername/your-project-name.git
+git branch -M main
+git push -u origin main
 ```
 
 ---
@@ -297,18 +299,12 @@ rm -rf src/app/(dashboard)/categories
 
 ### Deploy to Vercel
 
-1. **Push to GitHub**:
-   ```bash
-   git remote add origin https://github.com/yourusername/your-app-name.git
-   git push -u origin main
-   ```
-
-2. **Connect to Vercel**:
+1. **Connect to Vercel**:
    - Go to [vercel.com](https://vercel.com)
    - Import your GitHub repository
    - Vercel will auto-detect Next.js settings
 
-3. **Set environment variables** in Vercel dashboard:
+2. **Set environment variables** in Vercel dashboard:
    ```
    NEXT_PUBLIC_SUPABASE_URL=your-production-supabase-url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-production-anon-key
