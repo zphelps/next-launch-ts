@@ -16,6 +16,8 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
     SidebarRail,
+    SidebarTrigger,
+    useSidebar,
 } from '@/components/ui/sidebar';
 import {
     DropdownMenu,
@@ -28,9 +30,6 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
     CheckSquare,
-    Home,
-    Settings,
-    User,
     Tag,
     Rocket,
     LogOut,
@@ -38,11 +37,6 @@ import {
 } from 'lucide-react';
 
 const navigation = [
-    {
-        title: 'Dashboard',
-        url: '/dashboard',
-        icon: Home,
-    },
     {
         title: 'Todos',
         url: '/dashboard/todos',
@@ -58,6 +52,7 @@ const navigation = [
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const pathname = usePathname();
     const { user, signOut } = useAuth();
+    const { state } = useSidebar();
 
     const getInitials = (name: string) => {
         return name
@@ -79,17 +74,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
-                            <Link href="/">
-                                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                                    <Rocket className="size-4" />
-                                </div>
-                                <div className="grid flex-1 text-left text-sm leading-tight">
-                                    <span className="truncate font-semibold">Next Launch TS</span>
-                                    <span className="truncate text-xs">Todo List Starter</span>
-                                </div>
-                            </Link>
-                        </SidebarMenuButton>
+                        <div className="relative group/header">
+                            <SidebarMenuButton size="lg" asChild>
+                                <Link href="/">
+                                    <div className={`flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-opacity ${state === 'collapsed' ? 'group-hover/header:opacity-0' : ''}`}>
+                                        <Rocket className="size-4" />
+                                    </div>
+                                    <div className="grid flex-1 text-left text-sm leading-tight">
+                                        <span className="truncate font-semibold">Next Launch TS</span>
+                                        <span className="truncate text-xs">Todo List Starter</span>
+                                    </div>
+                                </Link>
+                            </SidebarMenuButton>
+                            <div className={`absolute transition-opacity ${state === 'collapsed' ? 'left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover/header:opacity-100' : 'right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover/header:opacity-100'}`}>
+                                <SidebarTrigger />
+                            </div>
+                        </div>
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarHeader>
