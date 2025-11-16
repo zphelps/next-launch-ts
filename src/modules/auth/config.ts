@@ -10,7 +10,7 @@ export const authConfig: AuthConfig = {
     defaultRedirectPath: '/dashboard',
     defaultUnauthorizedPath: '/unauthorized',
     protectedPaths: [
-        '/dashboard/*',
+        '/dashboard**',
     ],
     loginPath: '/login',
     signupPath: '/signup'
