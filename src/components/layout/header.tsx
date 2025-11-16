@@ -15,11 +15,7 @@ export function Header() {
     const { data: stats } = useTodoStats();
 
     return (
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-            <div className="flex items-center gap-2 px-4">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 h-4" />
-            </div>
+        <header className="flex h-14 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
 
             <div className="ml-auto flex items-center gap-4 px-4">
                 {/* Quick stats */}
@@ -44,20 +40,6 @@ export function Header() {
                         )}
                     </div>
                 )}
-
-                {/* Notifications */}
-                <Button variant="ghost" size="icon" className="relative">
-                    <Bell className="h-4 w-4" />
-                    {stats && stats.due_today > 0 && (
-                        <Badge
-                            variant="destructive"
-                            className="absolute -right-1 -top-1 h-5 w-5 rounded-full p-0 text-xs"
-                        >
-                            {stats.due_today}
-                        </Badge>
-                    )}
-                    <span className="sr-only">Notifications</span>
-                </Button>
             </div>
         </header>
     );
