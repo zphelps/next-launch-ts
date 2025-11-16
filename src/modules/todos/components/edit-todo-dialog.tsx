@@ -93,7 +93,7 @@ export function EditTodoDialog({ todo, open, onOpenChange }: EditTodoDialogProps
                 data: submitData,
             });
             onOpenChange(false);
-        } catch (error) {
+        } catch {
             // Error is handled by the mutation
         }
     };
@@ -108,7 +108,7 @@ export function EditTodoDialog({ todo, open, onOpenChange }: EditTodoDialogProps
                 <DialogHeader>
                     <DialogTitle>Edit Todo</DialogTitle>
                     <DialogDescription>
-                        Make changes to your todo. Click save when you're done.
+                        Make changes to your todo. Click save when you&apos;re done.
                     </DialogDescription>
                 </DialogHeader>
 

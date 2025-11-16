@@ -1,10 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import {
     Select,
     SelectContent,
@@ -18,7 +17,7 @@ import { useCategories } from '../hooks/useCategories';
 import { TodoCard } from './todo-card';
 import { CreateTodoDialog } from './create-todo-dialog';
 import { LoadingState } from '@/components/loading-spinner';
-import { TodoFilters, TodoPriority } from '../types';
+import { TodoFilters } from '../types';
 import {
     Plus,
     Search,
@@ -57,7 +56,7 @@ export function TodoList() {
 
     const { data: todos, isLoading } = useTodos(getTabFilters(activeTab));
 
-    const handleFilterChange = (key: keyof TodoFilters, value: any) => {
+    const handleFilterChange = (key: keyof TodoFilters, value: string | undefined) => {
         setFilters(prev => ({
             ...prev,
             [key]: value || undefined,

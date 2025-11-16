@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useCreateCategory } from '../hooks/useCategories';
 import { createCategorySchema, type CreateCategoryFormData } from '../validations';
-import { Loader2, Palette } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 interface CreateCategoryDialogProps {
     open: boolean;
@@ -54,13 +54,9 @@ export function CreateCategoryDialog({ open, onOpenChange }: CreateCategoryDialo
     const selectedColor = watch('color');
 
     const onSubmit = async (data: CreateCategoryFormData) => {
-        try {
-            await createCategory.mutateAsync(data);
-            reset();
-            onOpenChange(false);
-        } catch (error) {
-            // Error is handled by the mutation
-        }
+        await createCategory.mutateAsync(data);
+        reset();
+        onOpenChange(false);
     };
 
     const handleClose = () => {

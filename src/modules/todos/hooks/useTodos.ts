@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { todoService } from '../services/todos';
-import { TodoFilters, CreateTodoData, UpdateTodoData } from '../types';
+import { TodoFilters, CreateTodoData, UpdateTodoData, Todo } from '../types';
 import { toast } from 'sonner';
 
 // Query keys
@@ -137,7 +137,7 @@ export function useToggleTodo() {
             const previousTodo = queryClient.getQueryData(todoKeys.detail(id));
 
             // Optimistically update the cache
-            queryClient.setQueryData(todoKeys.detail(id), (old: any) => {
+            queryClient.setQueryData(todoKeys.detail(id), (old: Todo | undefined) => {
                 if (old) {
                     return { ...old, completed: !old.completed };
                 }

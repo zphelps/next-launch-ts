@@ -70,19 +70,14 @@ export function CreateTodoDialog({ open, onOpenChange }: CreateTodoDialogProps) 
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
     const onSubmit = async (data: CreateTodoFormData) => {
-        try {
-            const submitData = {
-                ...data,
-                due_date: data.due_date instanceof Date
-                    ? data.due_date.toISOString()
-                    : data.due_date || undefined,
-            };
-            await createTodo.mutateAsync(submitData);
-            reset();
-            onOpenChange(false);
-        } catch (error) {
-            // Error is handled by the mutation
-        }
+        await createTodo.mutateAsync({
+            ...data,
+            due_date: data.due_date instanceof Date
+                ? data.due_date.toISOString()
+                : data.due_date || undefined,
+        });
+        reset();
+        onOpenChange(false);
     };
 
     const handleClose = () => {

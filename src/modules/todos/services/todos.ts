@@ -332,7 +332,7 @@ export class TodoService {
     /**
      * Subscribe to real-time todo updates
      */
-    async subscribeToTodos(callback: (payload: any) => void) {
+    async subscribeToTodos(callback: (payload: unknown) => void) {
         const supabase = await createSupabaseClient();
 
         return supabase
@@ -351,7 +351,7 @@ export class TodoService {
     /**
      * Subscribe to real-time category updates
      */
-    async subscribeToCategories(callback: (payload: any) => void) {
+    async subscribeToCategories(callback: (payload: unknown) => void) {
         const supabase = await createSupabaseClient();
 
         return supabase

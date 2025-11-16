@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 isAuthenticated: false,
             });
         }
-    }, [router]);
+    }, []);
 
     useEffect(() => {
         // console.log("Auth State", state);

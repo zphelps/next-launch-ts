@@ -1,12 +1,8 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { SidebarTrigger } from '@/components/ui/sidebar';
-import { Separator } from '@/components/ui/separator';
 import { useTodoStats } from '@/modules/todos/hooks/useTodos';
 import {
-    Bell,
     CheckSquare,
     AlertCircle
 } from 'lucide-react';

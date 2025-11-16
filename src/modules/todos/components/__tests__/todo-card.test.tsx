@@ -25,12 +25,12 @@ describe('TodoCard', () => {
         mockToggleTodo.mockReturnValue({
             mutate: jest.fn(),
             isPending: false,
-        } as any)
+        } as unknown as ReturnType<typeof useToggleTodo>)
 
         mockDeleteTodo.mockReturnValue({
             mutate: jest.fn(),
             isPending: false,
-        } as any)
+        } as unknown as ReturnType<typeof useDeleteTodo>)
     })
 
     afterEach(() => {
@@ -67,7 +67,7 @@ describe('TodoCard', () => {
         mockToggleTodo.mockReturnValue({
             mutate: mockMutate,
             isPending: false,
-        } as any)
+        } as unknown as ReturnType<typeof useToggleTodo>)
 
         render(<TodoCard todo={mockTodo} />)
 
@@ -96,7 +96,7 @@ describe('TodoCard', () => {
         mockDeleteTodo.mockReturnValue({
             mutate: mockMutate,
             isPending: false,
-        } as any)
+        } as unknown as ReturnType<typeof useDeleteTodo>)
 
         // Mock window.confirm
         const originalConfirm = window.confirm

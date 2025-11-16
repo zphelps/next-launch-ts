@@ -1,6 +1,6 @@
 import { todoService } from '../todos'
 import { createSupabaseClient } from '@/supabase'
-import { createMockTodo, createMockCategory } from '@/lib/test-utils'
+import { createMockTodo } from '@/lib/test-utils'
 
 // Mock Supabase client
 jest.mock('@/supabase')

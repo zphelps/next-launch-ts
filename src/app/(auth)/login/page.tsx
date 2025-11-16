@@ -1,6 +1,8 @@
 import { LoginForm } from "@/modules/auth/components/login-form";
 import { pageMetadata } from "@/lib/seo";
 import { Rocket } from "lucide-react";
+import { Suspense } from "react";
+import { LoadingSpinner } from "@/components/loading-spinner";
 
 // Use the predefined metadata for consistent SEO
 export const metadata = pageMetadata.login;
@@ -15,7 +17,9 @@ export default function LoginPage() {
                     </div>
                     Next Launch TS
                 </a>
-                <LoginForm />
+                <Suspense fallback={<LoadingSpinner size="lg" />}>
+                    <LoginForm />
+                </Suspense>
             </div>
         </div>
     );

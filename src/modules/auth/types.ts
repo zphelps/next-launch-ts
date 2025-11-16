@@ -22,5 +22,5 @@ export interface AuthFunctions {
     signIn: (credentials: SignInCredentials) => Promise<{ user: User | null; error: AuthError | null }>;
     signUp: (credentials: SignUpCredentials) => Promise<{ user: User | null; error: AuthError | null }>;
     signOut: () => Promise<{ error: AuthError | null }>;
-    signInWithGoogle: () => Promise<{ data: any | null; error: AuthError | null }>;
+    signInWithGoogle: () => Promise<{ data: unknown | null; error: AuthError | null }>;
 }
