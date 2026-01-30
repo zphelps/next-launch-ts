@@ -1,5 +1,5 @@
 import { todoService } from '../todos'
-import { createSupabaseClient } from '@/supabase'
+import { createSupabaseClient } from '@/lib/supabase/client'
 import { createMockTodo } from '@/lib/test-utils'
 
 // Mock Supabase client

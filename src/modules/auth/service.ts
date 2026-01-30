@@ -1,4 +1,4 @@
-import { createSupabaseClient } from "@/supabase";
+import { createSupabaseClient } from "@/lib/supabase/client";
 import { SignInCredentials, SignUpCredentials } from "./types";
 import { User } from "@supabase/supabase-js";
 

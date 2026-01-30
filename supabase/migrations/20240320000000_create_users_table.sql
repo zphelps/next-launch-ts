@@ -43,4 +43,4 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER set_updated_at
     BEFORE UPDATE ON public.users
     FOR EACH ROW
-    EXECUTE FUNCTION public.handle_updated_at(); 
+    EXECUTE FUNCTION public.handle_updated_at();

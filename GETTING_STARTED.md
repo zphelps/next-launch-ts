@@ -8,7 +8,8 @@ A comprehensive guide for setting up a new SaaS project using the Next Launch TS
 
 - Node.js 18+ installed
 - Git installed
-- A Supabase account (free tier available)
+- Docker Desktop (for local Supabase)
+- A Supabase account (for production deployment)
 - A Vercel account (optional, for deployment)
 
 ---
@@ -34,26 +35,32 @@ git push -u origin main
 
 ---
 
-## Step 2: Environment Configuration
+## Step 2: Start Local Supabase
 
-### Create Environment File
+### Start Local Development Stack
 
 ```bash
-cp .env.example .env.local
+# Start local Supabase (PostgreSQL, Auth, Storage, etc.)
+npm run db:start
 ```
 
-### Set Up Supabase Project
+The first time you run this, Docker will download the necessary images. This may take a few minutes.
 
-1. Go to [supabase.com](https://supabase.com) and create a new project
-2. Wait for the project to be fully provisioned
-3. Navigate to Settings > API to get your credentials
+The command will output your local credentials:
+```
+API URL: http://127.0.0.1:54321
+anon key: <your-local-anon-key>
+```
 
-### Configure `.env.local`
+### Configure Environment
 
 ```bash
-# Required - Supabase Configuration
-NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+# Copy the environment template
+cp .env.example .env.local
+
+# Edit .env.local with the credentials from above
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-local-anon-key>
 
 # Required - Site Configuration
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
@@ -71,13 +78,16 @@ NEXT_PUBLIC_SITE_DESCRIPTION="Your app description"
 
 ### Apply Initial Migrations
 
-1. **Go to your Supabase dashboard**
-2. **Navigate to SQL Editor**
-3. **Run the migration files** from `src/supabase/migrations/` in chronological order:
-   - `20240320000000_create_users_table.sql`
-   - `20240320000001_create_todos_table.sql`
+Migrations are automatically applied when you start local Supabase. If you need to manually reset:
+
+```bash
+# Reset and apply all migrations
+npm run db:reset
+```
 
 ### Verify Database Setup
+
+Access local Supabase Studio at [http://127.0.0.1:54323](http://127.0.0.1:54323):
 
 - **Check tables**: Go to Database > Tables
 - **Verify RLS**: Ensure Row Level Security is enabled on all tables
@@ -85,10 +95,27 @@ NEXT_PUBLIC_SITE_DESCRIPTION="Your app description"
 
 ---
 
-## Step 4: Test the Application
+## Step 4: Start Inngest Dev Server
+
+Inngest provides durable background functions for workflows, queues, and scheduled jobs.
 
 ```bash
-# Start development server
+# In a new terminal, start the Inngest Dev Server
+npx inngest-cli@latest dev
+```
+
+This starts the local Inngest dashboard at [http://localhost:8288](http://localhost:8288) where you can:
+- View registered functions
+- Monitor function runs
+- Test functions by sending events
+- Debug step execution
+
+---
+
+## Step 5: Test the Application
+
+```bash
+# Start development server (in a new terminal)
 npm run dev
 ```
 
@@ -97,10 +124,11 @@ npm run dev
 3. **Test authentication** flow
 4. **Create a todo** to verify database connection
 5. **Check responsive design** on mobile
+6. **Open** [http://localhost:8288](http://localhost:8288) to view the Inngest dashboard
 
 ---
 
-## Step 5: Customize Your Application
+## Step 6: Customize Your Application
 
 ### Update Application Context
 
@@ -151,7 +179,7 @@ Edit `package.json`:
 
 ---
 
-## Step 6: Replace Example Module with Your Domain
+## Step 7: Replace Example Module with Your Domain
 
 ### Plan Your Domain Module
 
@@ -205,12 +233,12 @@ mkdir -p src/modules/products/{components,hooks,services}
 
 ### Create Database Tables
 
-1. **Create migration file** following the naming convention:
-   ```
-   YYYYMMDDHHmmss_create_your_table.sql
+1. **Create migration file**:
+   ```bash
+   npm run db:migration create_products_table
    ```
 
-2. **Define table structure**:
+2. **Define table structure** in the generated file (`supabase/migrations/`):
    ```sql
    -- Migration: Create products table
    -- Purpose: Add product management functionality
@@ -240,7 +268,10 @@ mkdir -p src/modules/products/{components,hooks,services}
      with check (auth.uid() = user_id);
    ```
 
-3. **Apply via Supabase dashboard**
+3. **Apply locally**:
+   ```bash
+   npm run db:reset
+   ```
 
 ### Update Navigation
 
@@ -274,7 +305,7 @@ export default function YourFeaturePage() {
 
 ---
 
-## Step 7: Optional Cleanup
+## Step 8: Optional Cleanup
 
 ### Remove Todo Module (if not needed)
 
@@ -295,7 +326,7 @@ rm -rf src/app/(dashboard)/categories
 
 ---
 
-## Step 8: Deployment
+## Step 9: Deployment
 
 ### Deploy to Vercel
 
@@ -315,14 +346,21 @@ rm -rf src/app/(dashboard)/categories
 
 ### Production Database
 
-1. **Create production Supabase project** (or use the same one with different tables)
-2. **Apply same migrations** to production database
-3. **Update production environment variables** in Vercel
-4. **Test production deployment**
+1. **Create production Supabase project** at [supabase.com](https://supabase.com)
+2. **Link your project**:
+   ```bash
+   npx supabase link --project-ref your-project-id
+   ```
+3. **Push migrations to production**:
+   ```bash
+   npm run db:push
+   ```
+4. **Update production environment variables** in Vercel with production credentials
+5. **Test production deployment**
 
 ---
 
-## Step 9: Development Workflow
+## Step 10: Development Workflow
 
 ### Available Scripts
 
@@ -332,9 +370,19 @@ npm run dev          # Start dev server with Turbopack
 npm run build        # Build for production
 npm start           # Start production server
 
+# Database
+npm run db:start    # Start local Supabase
+npm run db:stop     # Stop local Supabase
+npm run db:reset    # Reset and apply all migrations
+npm run db:migration # Create new migration
+npm run db:push     # Push migrations to production
+npm run db:pull     # Pull schema from production
+
+# Background Jobs (Inngest)
+npx inngest-cli@latest dev  # Start Inngest Dev Server
+
 # Code Quality
 npm run lint        # Run ESLint
-npm run type-check  # Check TypeScript (if available)
 
 # Testing
 npm test           # Run tests
@@ -353,7 +401,7 @@ npm run test:coverage # Generate coverage report
 
 ---
 
-## Step 10: Maintain Documentation
+## Step 11: Maintain Documentation
 
 ### Keep AGENTS.md Updated
 
@@ -438,6 +486,7 @@ You now have a production-ready SaaS application foundation. The starter include
 - ✅ **Database setup** with RLS security
 - ✅ **Modern UI** with shadcn/ui components
 - ✅ **Type safety** with TypeScript and Zod
+- ✅ **Background jobs** with Inngest (queues, workflows, cron jobs)
 - ✅ **Testing setup** with Jest and React Testing Library
 - ✅ **Deployment ready** for Vercel
 - ✅ **SEO optimized** with metadata and sitemaps

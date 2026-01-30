@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { AuthError, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
-import { createSupabaseClient } from '@/supabase';
+import { createSupabaseClient } from '@/lib/supabase/client';
 import { AuthFunctions, AuthState } from './types';
 import AuthService from './service';
 import { authConfig } from './config';
