@@ -54,9 +54,9 @@ function ThemeToggle() {
   );
 }
 
-function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
+function Section({ id, title, description, children }: { id?: string; title: string; description?: string; children: React.ReactNode }) {
   return (
-    <section className="space-y-6">
+    <section id={id} className="space-y-6">
       <div>
         <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
         {description && <p className="text-muted-foreground mt-1">{description}</p>}

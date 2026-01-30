@@ -3,7 +3,7 @@ import { createSupabaseClient } from '@/lib/supabase/client'
 import { createMockTodo } from '@/lib/test-utils'
 
 // Mock Supabase client
-jest.mock('@/supabase')
+jest.mock('@/lib/supabase/client')
 
 const mockSupabaseClient = createSupabaseClient as jest.MockedFunction<typeof createSupabaseClient>
 

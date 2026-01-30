@@ -18,7 +18,7 @@ const customJestConfig = {
         '!src/**/*.d.ts',
         '!src/app/layout.tsx',
         '!src/app/globals.css',
-        '!src/middleware.ts',
+        '!src/proxy.ts',
     ],
     testMatch: [
         '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}',
