@@ -2,11 +2,11 @@
 import type { NextRequest } from 'next/server';
 import { authMiddleware } from '@/modules/auth/middleware';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     return authMiddleware(request);
 }
 
-// Define protected paths statically for middleware matcher
+// Define protected paths statically for proxy matcher
 export const config = {
     matcher: [
         /*

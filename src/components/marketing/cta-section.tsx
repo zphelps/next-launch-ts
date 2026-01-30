@@ -1,71 +1,110 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Github, ExternalLink, Copy } from "lucide-react";
+import { Github, BookOpen, Copy, Check, Terminal } from "lucide-react";
+import { useState } from "react";
 
 export function CTASection() {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = () => {
+        const commands = `git clone https://github.com/zphelps/next-launch-ts.git my-app
+cd my-app && npm install
+npm run db:start && npm run dev`;
+        navigator.clipboard.writeText(commands);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
     return (
-        <section id="get-started" className="container mx-auto max-w-screen-2xl px-4 py-20 sm:py-32">
+        <section id="get-started" className="container mx-auto max-w-7xl px-4 py-16 sm:py-20 lg:py-24">
             <div className="text-center space-y-8 sm:space-y-10">
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
                     Ready to launch your SaaS?
                 </h2>
-                <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-                    Join thousands of developers who have shipped faster with Next Launch.
-                    Start building your next big idea today.
+                <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                    Clone the repository and start building in minutes.
+                    Everything is configured and ready to go.
                 </p>
 
                 {/* Quick start commands */}
-                <div className="bg-muted/30 rounded-lg p-4 sm:p-6 max-w-2xl mx-auto">
+                <div className="bg-muted/40 border border-border/50 rounded-xl p-5 sm:p-6 max-w-2xl mx-auto">
                     <div className="text-left">
-                        <div className="flex items-center justify-between mb-3">
-                            <div className="text-xs sm:text-sm text-muted-foreground">Get started in 3 commands:</div>
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                                <Terminal className="h-4 w-4" />
+                                Quick Start
+                            </div>
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-6 px-2 text-xs"
-                                onClick={() => {
-                                    const commands = `git clone https://github.com/your-username/next-launch-ts.git
-npm install
-npm run dev`;
-                                    navigator.clipboard.writeText(commands);
-                                }}
+                                className="h-8 px-3 text-xs"
+                                onClick={handleCopy}
                             >
-                                <Copy className="h-3 w-3 mr-1" />
-                                Copy
+                                {copied ? (
+                                    <>
+                                        <Check className="h-3.5 w-3.5 mr-1.5 text-green-500" />
+                                        Copied!
+                                    </>
+                                ) : (
+                                    <>
+                                        <Copy className="h-3.5 w-3.5 mr-1.5" />
+                                        Copy
+                                    </>
+                                )}
                             </Button>
                         </div>
-                        <div className="bg-background border border-border rounded-md p-3 sm:p-4 font-mono text-xs sm:text-sm space-y-1 overflow-x-auto">
-                            <div><span className="text-muted-foreground">$</span> git clone https://github.com/your-username/next-launch-ts.git</div>
-                            <div><span className="text-muted-foreground">$</span> npm install</div>
-                            <div><span className="text-muted-foreground">$</span> npm run dev</div>
+                        <div className="bg-background border border-border rounded-lg p-4 font-mono text-sm space-y-2 overflow-x-auto">
+                            <div className="flex">
+                                <span className="text-muted-foreground select-none mr-3">$</span>
+                                <span>git clone https://github.com/zphelps/next-launch-ts.git my-app</span>
+                            </div>
+                            <div className="flex">
+                                <span className="text-muted-foreground select-none mr-3">$</span>
+                                <span>cd my-app && npm install</span>
+                            </div>
+                            <div className="flex">
+                                <span className="text-muted-foreground select-none mr-3">$</span>
+                                <span>npm run db:start && npm run dev</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Action buttons */}
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center">
-                    <Button size="lg" asChild className="w-full sm:w-auto">
-                        <Link href="https://github.com/your-username/next-launch-ts" target="_blank">
+                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                    <Button size="lg" asChild className="w-full sm:w-auto min-w-[180px] h-12 text-base">
+                        <Link href="https://github.com/zphelps/next-launch-ts" target="_blank">
                             <Github className="mr-2 h-4 w-4" />
-                            Clone Repository
+                            View on GitHub
                         </Link>
                     </Button>
-                    <Button variant="outline" size="lg" asChild className="w-full sm:w-auto">
-                        <Link href="/docs" target="_blank">
-                            <ExternalLink className="mr-2 h-4 w-4" />
-                            Read Documentation
+                    <Button variant="outline" size="lg" asChild className="w-full sm:w-auto min-w-[180px] h-12 text-base">
+                        <Link href="https://github.com/zphelps/next-launch-ts#readme" target="_blank">
+                            <BookOpen className="mr-2 h-4 w-4" />
+                            Documentation
                         </Link>
                     </Button>
                 </div>
 
                 {/* Additional info */}
                 <div className="pt-4 sm:pt-6">
-                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center items-center text-xs sm:text-sm text-muted-foreground">
-                        <div>✨ No setup required</div>
-                        <div className="hidden sm:block">•</div>
-                        <div>🚀 Deploy in minutes</div>
-                        <div className="hidden sm:block">•</div>
-                        <div>💝 Free forever</div>
+                    <div className="flex flex-wrap justify-center items-center gap-3 sm:gap-6 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-green-500">✓</span>
+                            Local Supabase included
+                        </div>
+                        <div className="text-muted-foreground/30">•</div>
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-green-500">✓</span>
+                            Deploy in minutes
+                        </div>
+                        <div className="text-muted-foreground/30">•</div>
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-green-500">✓</span>
+                            Free forever
+                        </div>
                     </div>
                 </div>
             </div>

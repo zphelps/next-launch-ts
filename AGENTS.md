@@ -57,6 +57,7 @@ This architecture emphasizes **scalability, maintainability, and developer exper
 - **UI Components**: shadcn/ui (Radix UI + Tailwind CSS)
 - **Styling**: Tailwind CSS v4
 - **Forms**: React Hook Form + Zod validation
+- **Background Jobs**: Inngest (durable workflows, queues, cron jobs)
 - **Testing**: Jest + React Testing Library
 
 ### Production Features
@@ -70,23 +71,30 @@ This architecture emphasizes **scalability, maintainability, and developer exper
 ## Project Structure
 
 ```
-/src/
-├── app/                    # Next.js App Router
-│   ├── (auth)/            # Authentication pages
-│   ├── (dashboard)/       # Protected dashboard routes
-│   ├── api/               # API route handlers
-│   └── providers.tsx      # App-wide providers
-├── components/            # Shared UI components
-│   ├── ui/               # shadcn/ui components
-│   └── layout/           # Layout components
-├── modules/              # Feature modules
-│   ├── auth/             # Authentication system
-│   ├── todos/            # Example feature module
-│   └── users/            # User management
-├── lib/                  # Utility functions
-├── hooks/                # Shared custom hooks
-├── supabase/             # Supabase client configuration
-└── middleware.ts         # Route protection
+/
+├── supabase/              # Supabase configuration (root level)
+│   ├── config.toml        # Supabase CLI configuration
+│   └── migrations/        # Database migration files
+├── docs/
+│   └── supabase/          # Supabase development prompts
+├── src/
+│   ├── app/               # Next.js App Router
+│   │   ├── (auth)/       # Authentication pages
+│   │   ├── (dashboard)/  # Protected dashboard routes
+│   │   ├── api/          # API route handlers
+│   │   └── providers.tsx # App-wide providers
+│   ├── components/       # Shared UI components
+│   │   ├── ui/          # shadcn/ui components
+│   │   └── layout/      # Layout components
+│   ├── modules/         # Feature modules
+│   │   ├── auth/        # Authentication system
+│   │   ├── todos/       # Example feature module
+│   │   └── users/       # User management
+│   ├── lib/             # Utility functions
+│   │   ├── supabase/    # Supabase client configuration
+│   │   └── inngest/     # Inngest client and functions
+│   ├── hooks/           # Shared custom hooks
+│   └── middleware.ts    # Route protection
 ```
 
 ---
@@ -192,6 +200,124 @@ if (!isAuthenticated) {
 
 ---
 
+## Data Access Patterns
+
+### The Data Flow Hierarchy
+
+```
+CLIENT (Browser)
+    │
+    ▼
+React Query Hooks
+    │
+    ├─────────────────────┬─────────────────────────────┐
+    ▼                     ▼                             ▼
+Service Methods       API Routes                   (Supabase
+(direct - FAST)       (server-only ops)             Realtime)
+    │                     │
+    ▼                     ├──────────┬────────────────┐
+Supabase              Services   inngest.send()   External APIs
+                                 (background)     (with secrets)
+```
+
+### Pattern 1: Simple CRUD (80-90% of Operations)
+
+**Flow**: `Hook → Service → Supabase` (fastest path, no server hop)
+
+```typescript
+// Most operations use this pattern - direct to Supabase via services
+export function useCreateTodo() {
+    return useMutation({
+        mutationFn: (data: CreateTodoData) => todoService.createTodo(data),
+    });
+}
+```
+
+### Pattern 2: Operations Requiring Server-Only Code
+
+**Flow**: `Hook → API Route → Service + Inngest/External APIs`
+
+Use API routes when you need: Inngest events, external APIs with secrets, or server env vars.
+
+```typescript
+// API Route - orchestrates server-only operations
+export async function POST(request: NextRequest) {
+    const data = await request.json();
+    
+    // Business logic via service
+    const order = await orderService.createOrder(data);
+    
+    // Server-only: external API + background job
+    const payment = await stripe.paymentIntents.create({...});
+    await inngest.send({ name: 'order/created', data: { orderId: order.id } });
+    
+    return NextResponse.json({ order, clientSecret: payment.client_secret });
+}
+```
+
+### Pattern 3: Inngest Functions
+
+**Flow**: `Inngest → Service Methods` (reuse business logic)
+
+```typescript
+export const processOrder = inngest.createFunction(
+    { id: "process-order" },
+    { event: "order/created" },
+    async ({ event, step }) => {
+        // Reuse services - don't duplicate logic
+        await step.run("fulfill", () => orderService.fulfill(event.data.orderId));
+    }
+);
+```
+
+### Decision Matrix
+
+| Scenario | Pattern |
+|----------|---------|
+| Read/write data (Supabase only) | Hook → Service → Supabase |
+| Mutation + Inngest/email/notifications | Hook → API Route → Service + `inngest.send()` |
+| Mutation + external API (Stripe, etc.) | Hook → API Route → Service + External API |
+| External webhook (Stripe calls you) | API Route → Service + Inngest |
+| Scheduled/cron job | Inngest cron → Service |
+
+### Anti-Patterns
+
+```typescript
+// ❌ NEVER: Service calling inngest.send() - services may run client-side
+class OrderService {
+    async createOrder(data) {
+        const order = await this.insert(data);
+        await inngest.send({...}); // WRONG - won't work on client
+    }
+}
+
+// ❌ NEVER: Hook calling inngest.send() directly - runs on client
+export function useCreateOrder() {
+    return useMutation({
+        mutationFn: async (data) => {
+            const order = await orderService.createOrder(data);
+            await inngest.send({...}); // WRONG
+        },
+    });
+}
+
+// ❌ NEVER: Component calling Supabase directly - bypasses service layer
+function TodoList() {
+    useEffect(() => {
+        supabase.from('todos').select('*')... // WRONG
+    }, []);
+}
+```
+
+### Key Principles
+
+1. **Services are universal** - They run on client OR server, so no server-only code
+2. **Keep the fast path fast** - Most CRUD goes Hook → Service → Supabase
+3. **API routes orchestrate** - They coordinate services + server-only operations
+4. **Inngest reuses services** - Background functions call service methods for logic
+
+---
+
 ## Common Workflows
 
 ### Adding a New Feature Module
@@ -283,14 +409,101 @@ export async function POST(request: Request) {
 }
 ```
 
+### Inngest Background Jobs Pattern
+
+Inngest is used for background jobs, scheduled tasks, and multi-step durable workflows. Functions are defined with steps that automatically retry on failure.
+
+**When to Use Inngest:**
+- **Background processing** - Email sending, file processing, data sync
+- **Multi-step workflows** - User onboarding, order fulfillment
+- **Scheduled/cron jobs** - Cleanup tasks, report generation
+- **Event-driven tasks** - React to user actions, webhooks
+- **Long-running operations** - AI processing, data migrations
+
+**Creating Inngest Functions:**
+
+```typescript
+// src/lib/inngest/functions/notifications.ts
+import { inngest } from "../client";
+
+export const sendWelcomeEmail = inngest.createFunction(
+  {
+    id: "send-welcome-email",
+    retries: 3, // Automatic retries on failure
+  },
+  { event: "user/signed.up" }, // Event trigger
+  async ({ event, step }) => {
+    // Step 1: Get user details (automatically retried)
+    const user = await step.run("get-user", async () => {
+      return await db.users.findById(event.data.userId);
+    });
+
+    // Step 2: Send email
+    await step.run("send-email", async () => {
+      await emailService.send({
+        to: user.email,
+        template: "welcome",
+      });
+    });
+
+    // Step 3: Wait 1 day, then send follow-up
+    await step.sleep("wait-for-follow-up", "1d");
+
+    await step.run("send-follow-up", async () => {
+      await emailService.send({
+        to: user.email,
+        template: "getting-started",
+      });
+    });
+
+    return { success: true };
+  }
+);
+```
+
+**Registering Functions:**
+
+```typescript
+// src/lib/inngest/functions/index.ts
+import { sendWelcomeEmail } from "./notifications";
+
+export const functions = [
+  sendWelcomeEmail,
+  // Add more functions here
+];
+```
+
+**Triggering Events (Server-Side Only):**
+
+```typescript
+// From API routes ONLY - inngest.send() requires server-side execution
+// app/api/users/route.ts
+import { inngest } from "@/lib/inngest/client";
+
+export async function POST(request: NextRequest) {
+  const user = await userService.createUser(data);
+  
+  // Safe to call inngest here - we're on the server
+  await inngest.send({
+    name: "user/signed.up",
+    data: { userId: user.id, email: user.email },
+  });
+  
+  return NextResponse.json(user);
+}
+```
+
+> ⚠️ **Important**: Never call `inngest.send()` from services or React Query hooks — they may run client-side where Inngest events cannot be sent securely.
+
 ### Environment Variables
 
 Required variables (`.env.local`):
 
 ```bash
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+# Supabase - Local Development (default)
+# Get these from: npm run db:start
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<from-db-start-output>
 
 # Site Configuration
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
@@ -300,80 +513,177 @@ NEXT_PUBLIC_SITE_DESCRIPTION="[YOUR_APP_DESCRIPTION]"
 
 ---
 
-## Database Migrations
+## Local Development Workflow
 
-### Migration Workflow
-This project uses Supabase CLI for database migrations with a structured approach:
+This project uses **local Supabase development** for faster iteration and version-controlled schema changes.
 
-1. **Create Migration File**:
-   ```bash
-   # File naming: YYYYMMDDHHmmss_description.sql
-   # Example: 20240320120000_create_products_table.sql
-   ```
+### Initial Setup (One-Time)
 
-2. **Migration Structure**:
-   ```sql
-   -- Migration: Create products table
-   -- Purpose: Add product management functionality
-   -- Affected: products table, RLS policies
-   
-   create table public.products (
-     id bigint generated always as identity primary key,
-     name text not null,
-     description text,
-     price decimal(10,2) not null,
-     user_id uuid references auth.users(id) not null,
-     created_at timestamp with time zone default now(),
-     updated_at timestamp with time zone default now()
-   );
-   
-   -- Enable RLS
-   alter table public.products enable row level security;
-   
-   -- RLS Policies
-   create policy "Users can view their own products"
-     on public.products for select
-     to authenticated
-     using (auth.uid() = user_id);
-   
-   create policy "Users can create their own products"
-     on public.products for insert
-     to authenticated
-     with check (auth.uid() = user_id);
-   ```
+```bash
+# 1. Install dependencies
+npm install
 
-3. **Apply Migrations**:
-   - Developer should apply through the SQL editor or migrations interface
+# 2. Start local Supabase (requires Docker)
+npm run db:start
+
+# 3. Copy local credentials to .env.local
+# The db:start command outputs API URL and anon key
+
+# 4. Run your Next.js app
+npm run dev
+```
+
+### Daily Development Workflow
+
+```bash
+# Start local Supabase stack
+npm run db:start
+
+# In another terminal, start Inngest Dev Server
+npx inngest-cli@latest dev
+
+# In another terminal, run your Next.js app
+npm run dev
+
+# When done for the day
+npm run db:stop
+```
+
+### Creating Database Schema Changes
+
+**Option 1: Create Migration Files (Recommended)**
+
+```bash
+# Create a new migration file
+npm run db:migration add_products_table
+
+# Edit the generated file in supabase/migrations/
+# Then apply it locally
+npm run db:reset
+```
+
+**Option 2: Use Studio Dashboard**
+
+```bash
+# Access local Studio at http://127.0.0.1:54323
+# Make changes in the UI
+# Generate migration from changes:
+npx supabase db diff -f add_products_table
+```
 
 ### Migration Best Practices
+
 - **Always enable RLS** on new tables
 - **Create granular policies** (separate for select, insert, update, delete)
 - **Use descriptive comments** explaining the purpose
-- **Test migrations** in development before production
+- **Test migrations locally** with `npm run db:reset` before pushing
+
+### Example Migration Structure
+
+```sql
+-- Migration: Create products table
+-- Purpose: Add product management functionality
+-- Affected: products table, RLS policies
+
+create table public.products (
+  id bigint generated always as identity primary key,
+  name text not null,
+  description text,
+  price decimal(10,2) not null,
+  user_id uuid references auth.users(id) not null,
+  created_at timestamp with time zone default now(),
+  updated_at timestamp with time zone default now()
+);
+
+-- Enable RLS
+alter table public.products enable row level security;
+
+-- RLS Policies
+create policy "Users can view their own products"
+  on public.products for select
+  to authenticated
+  using (auth.uid() = user_id);
+
+create policy "Users can create their own products"
+  on public.products for insert
+  to authenticated
+  with check (auth.uid() = user_id);
+```
 
 ---
 
 ## CI/CD & Deployment
 
 ### Deployment Pipeline
+
+**Application Deployment (Vercel):**
 - **Platform**: Vercel (optimized for Next.js)
 - **Auto-deployment**: Connected to main branch
+- **Preview Deployments**: Automatic for all branches
 - **Environment**: Production variables managed in Vercel dashboard
 
-### Database Deployment
-- **Supabase**: Managed PostgreSQL with automatic backups
-- **Migrations**: Applied via Supabase dashboard
-- **Environment sync**: Separate dev/staging/prod projects
+**Database Deployment (Supabase):**
+- **Local Development**: Run `npm run db:start` for local PostgreSQL
+- **Branching**: Supabase can create preview databases per Git branch
+- **Migration Deployment**: Migrations auto-apply on deployment
+- **Production**: Migrations pushed via `npm run db:push` or CI/CD
+
+### Branching & Preview Environments
+
+When using Supabase branching (optional but recommended):
+
+1. **Create a feature branch**:
+   ```bash
+   git checkout -b feature/new-feature
+   ```
+
+2. **Make schema changes locally**:
+   ```bash
+   npm run db:migration add_new_table
+   # Edit migration file
+   npm run db:reset  # Test locally
+   ```
+
+3. **Push to GitHub**:
+   ```bash
+   git add supabase/migrations/
+   git commit -m "Add new table migration"
+   git push origin feature/new-feature
+   ```
+
+4. **Automatic Preview Environment**:
+   - Supabase creates a preview database for this branch
+   - Vercel creates a preview deployment
+   - Preview deployment connects to preview database
+   - Test your changes in isolated environment
+
+5. **Merge to main**:
+   - Migrations automatically apply to production database
+   - Production deployment goes live
+
+### Manual Migration Deployment
+
+If not using Supabase branching:
+
+```bash
+# Push migrations to production
+npm run db:push
+
+# Or link to specific project
+npx supabase link --project-ref your-project-id
+npm run db:push
+```
 
 ### Environment Management
+
 ```bash
-# Development
-NEXT_PUBLIC_SUPABASE_URL=your_dev_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_dev_anon_key
+# Local Development
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<local-anon-key-from-db-start>
 
 # Production (set in Vercel dashboard)
-NEXT_PUBLIC_SUPABASE_URL=your_prod_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_prod_anon_key
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-production-anon-key>
 ```
 
 ---
@@ -505,33 +815,42 @@ interface CreateTodoButtonProps {
 3. **Update application context** - Keep domain context current
 
 ### 💻 Development
-4. **Mobile-first styling** - Start with mobile (320px+), enhance for desktop
-5. **Type everything** - Leverage TypeScript strict mode and Zod validation
-6. **Environment validation** - Use `src/lib/env.ts` for type-safe variables
-7. **Invalidate queries** - Keep UI in sync after mutations
-8. **Business logic in services** - Keep hooks and API routes thin, delegate to service methods
+4. **Use local Supabase** - Develop with `npm run db:start` for faster iteration
+5. **Version control schema** - All database changes go in migration files
+6. **Mobile-first styling** - Start with mobile (320px+), enhance for desktop
+7. **Type everything** - Leverage TypeScript strict mode and Zod validation
+8. **Environment validation** - Use `src/lib/env.ts` for type-safe variables
+9. **Invalidate queries** - Keep UI in sync after mutations
+10. **Business logic in services** - Keep hooks and API routes thin, delegate to service methods
 
 ### 🎨 UI/UX
-9. **Extract components early** - Keep files <200 lines, extract reusable patterns
-10. **Use shadcn/ui components** - Pre-styled, accessible components
-11. **Show user feedback** - Use toast notifications for actions
-12. **Handle loading states** - Always show loading indicators
+11. **Extract components early** - Keep files <200 lines, extract reusable patterns
+12. **Use shadcn/ui components** - Pre-styled, accessible components
+13. **Show user feedback** - Use toast notifications for actions
+14. **Handle loading states** - Always show loading indicators
 
 ### 🔒 Security & Performance
-13. **Protect routes** - Use middleware for authentication
-14. **Enable RLS** - Row Level Security on all Supabase tables
-15. **Optimize queries** - Use React Query caching and stale time
+15. **Protect routes** - Use middleware for authentication
+16. **Enable RLS** - Row Level Security on all Supabase tables
+17. **Optimize queries** - Use React Query caching and stale time
 
-### 🛣️ API Design
-16. **Prefer direct Supabase calls** - Use API routes only for server-side operations
-17. **Use API routes for webhooks** - External service integrations and secret key operations
-18. **Keep API routes focused** - Single responsibility, clear error handling
+### 🛣️ Data Access
+18. **Use the fast path for CRUD** - Hook → Service → Supabase (no server hop)
+19. **API routes for server-only ops** - Inngest, external APIs, webhooks, secrets
+20. **Services stay universal** - No Inngest calls, no external APIs, no server secrets
+21. **API routes orchestrate** - Call services for logic, add server-only operations
+
+### ⚡ Background Jobs (Inngest)
+22. **Trigger from API routes only** - Never call `inngest.send()` from services or hooks
+23. **Reuse services in functions** - Inngest functions call service methods for business logic
+24. **Break work into steps** - Each step is independently retried
+25. **Use step.sleep for delays** - Durable delays without blocking
 
 ### 🧹 Code Quality
-19. **Less code = less tech debt** - Start simple, add complexity only when needed
-20. **Delete unused code** - Remove dead code immediately
-21. **Avoid premature abstraction** - Extract only when you have 2+ use cases
-22. **Leverage existing solutions** - Use built-in Next.js, React Query, and shadcn/ui features
+26. **Less code = less tech debt** - Start simple, add complexity only when needed
+27. **Delete unused code** - Remove dead code immediately
+28. **Avoid premature abstraction** - Extract only when you have 2+ use cases
+29. **Leverage existing solutions** - Use built-in Next.js, React Query, and shadcn/ui features
 
 ---
 

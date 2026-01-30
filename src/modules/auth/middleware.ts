@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authConfig, publicPaths } from './config';
-import { createSupabaseClient } from '@/supabase';
+import { createSupabaseClient } from '@/lib/supabase/client';
 import { matchPath } from '@/lib/utils';
 
 export async function authMiddleware(request: NextRequest): Promise<NextResponse> {

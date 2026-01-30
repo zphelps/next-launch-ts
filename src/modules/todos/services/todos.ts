@@ -1,4 +1,4 @@
-import { createSupabaseClient } from '@/supabase';
+import { createSupabaseClient } from '@/lib/supabase/client';
 import {
     Todo,
     TodoCategory,

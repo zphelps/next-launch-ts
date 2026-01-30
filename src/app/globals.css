@@ -45,7 +45,7 @@
 
 :root {
   /* OpenAI-inspired design tokens - clean and minimal */
-  --radius: 0.5rem;
+  --radius: 0.85rem;
 
   /* Core colors - pure and clean */
   --background: oklch(1 0 0);
