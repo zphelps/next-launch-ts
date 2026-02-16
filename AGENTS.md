@@ -318,6 +318,42 @@ function TodoList() {
 
 ---
 
+## Cursor Commands
+
+Pre-built commands optimized for AI-assisted development are available via Cursor's `/` menu. These commands help AI understand this codebase and produce higher-quality code.
+
+### Available Commands
+
+Type `/` in Cursor's chat to see these commands:
+
+| Command | When to Use |
+|---------|-------------|
+| `/explore-and-plan` | Before implementing significant features - explores codebase, considers options, creates implementation plan |
+| `/new-module` | Creating a new feature module from scratch following the established patterns |
+| `/code-review` | After implementing a feature to catch issues before they reach production |
+| `/cleanup` | Reducing tech debt without changing behavior |
+
+### Usage
+
+1. Type `/` in Cursor's chat input
+2. Select a command from the dropdown
+3. Add your context after the command
+
+**Example:**
+```
+/explore-and-plan Add a notifications system that sends emails when todos are due
+```
+
+### Session Continuity
+
+For tracking work across sessions, see `@docs/HANDOFF.md`. Update it when ending a session with incomplete work.
+
+### Command Details
+
+For detailed documentation on each command, see `docs/prompts/`
+
+---
+
 ## Common Workflows
 
 ### Adding a New Feature Module
