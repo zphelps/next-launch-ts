@@ -1,6 +1,7 @@
 'use client';
 
 import { Toaster } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { AuthProvider } from '@/modules/auth/context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Analytics } from '@vercel/analytics/react';
@@ -20,10 +21,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
     return (
         <QueryClientProvider client={queryClient}>
             <AuthProvider>
-                {children}
-                <Toaster />
-                <Analytics />
-                <SpeedInsights />
+                <TooltipProvider>
+                    {children}
+                    <Toaster />
+                    <Analytics />
+                    <SpeedInsights />
+                </TooltipProvider>
             </AuthProvider>
         </QueryClientProvider>
     )

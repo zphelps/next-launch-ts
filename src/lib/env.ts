@@ -16,6 +16,10 @@ const envSchema = z.object({
     NEXT_PUBLIC_SITE_NAME: z.string().optional(),
     NEXT_PUBLIC_SITE_DESCRIPTION: z.string().optional(),
 
+    // Server-only - Jarvis AI (optional at build time, required at runtime for AI features)
+    ANTHROPIC_API_KEY: z.string().optional(),
+    SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
+
     // Node Environment
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 });

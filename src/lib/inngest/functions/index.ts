@@ -11,6 +11,8 @@
  */
 
 import { helloWorld, userOnboarding, dailyCleanup } from "./example";
+import { decomposeTask } from "./jarvis/decompose-task";
+import { executeTask } from "./jarvis/execute-task";
 
 /**
  * All Inngest functions to be served.
@@ -22,7 +24,7 @@ export const functions = [
   userOnboarding,
   dailyCleanup,
 
-  // Add your functions here:
-  // myCustomFunction,
-  // anotherFunction,
+  // Jarvis orchestration
+  decomposeTask,
+  executeTask,
 ];

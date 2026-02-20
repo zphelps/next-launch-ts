@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 
 export default function DashboardPage() {
-    redirect('/dashboard/todos');
+    redirect('/dashboard/mission-control');
     return null;
 }

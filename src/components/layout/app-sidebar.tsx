@@ -29,8 +29,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
-    CheckSquare,
-    Tag,
+    LayoutDashboard,
+    MessageSquare,
     Rocket,
     LogOut,
     ChevronsUpDown,
@@ -38,14 +38,14 @@ import {
 
 const navigation = [
     {
-        title: 'Todos',
-        url: '/dashboard/todos',
-        icon: CheckSquare,
+        title: 'Mission Control',
+        url: '/dashboard/mission-control',
+        icon: LayoutDashboard,
     },
     {
-        title: 'Categories',
-        url: '/dashboard/categories',
-        icon: Tag,
+        title: 'Chat with Jarvis',
+        url: '/dashboard/chat',
+        icon: MessageSquare,
     },
 ];
 
@@ -81,8 +81,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                         <Rocket className="size-4" />
                                     </div>
                                     <div className="grid flex-1 text-left text-sm leading-tight">
-                                        <span className="truncate font-semibold">Next Launch TS</span>
-                                        <span className="truncate text-xs">Todo List Starter</span>
+                                        <span className="truncate font-semibold">Jarvis</span>
+                                        <span className="truncate text-xs">Personal Assistant</span>
                                     </div>
                                 </Link>
                             </SidebarMenuButton>
